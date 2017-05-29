@@ -1,0 +1,48 @@
+{
+  "name": "calculator",
+  "version": "0.0.1",
+  "description": "Learning about complex (infix notation) expression parsing",
+  "private": true,
+  "main": "lib/index.js",
+  "scripts": {
+    "test": "npm run jest && npm run lint",
+    "jest": "jest",
+    "jestWatch": "jest --watch --notify",
+    "build": "babel src -d lib --copy-files",
+    "lint": "eslint src/"
+  },
+  "jest": {
+    "transform": {
+      "^.+\\.jsx?$": "babel-jest"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yoo2001818/calculator.git"
+  },
+  "author": "yoo2001818",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/yoo2001818/calculator/issues"
+  },
+  "homepage": "https://github.com/yoo2001818/calculator#readme",
+  "dependencies": {},
+  "devDependencies": {
+    "babel-core": "^6.24.1",
+    "babel-eslint": "^7.2.3",
+    "babel-jest": "^19.0.0",
+    "babel-preset-env": "^1.4.0",
+    "babel-preset-react": "^6.24.1",
+    "babel-register": "^6.24.1",
+    "eslint": "^3.19.0",
+    "eslint-config-semistandard": "^11.0.0",
+    "eslint-config-standard": "^10.2.1",
+    "eslint-config-standard-jsx": "^4.0.1",
+    "eslint-plugin-import": "^2.2.0",
+    "eslint-plugin-node": "^4.2.2",
+    "eslint-plugin-promise": "^3.5.0",
+    "eslint-plugin-react": "^6.10.3",
+    "eslint-plugin-standard": "^3.0.1",
+    "jest": "^19.0.2"
+  }
+}
