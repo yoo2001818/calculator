@@ -1,5 +1,5 @@
 const OPERATORS = {
-  'keyword': 1,
+  'keyword': 4,
   '+': 2,
   '-': 2,
   '/': 3,
@@ -29,21 +29,25 @@ export default function shuntingYard(tokenizer) {
           output.push(stack.pop());
           peekToken = stack[stack.length - 1];
         }
+        stack.push(token);
         break;
       }
       case '(':
         stack.push(token);
         break;
       case ')': {
-        let pullToken = stack.pop();
-        if (pullToken == null) throw new Error('Unmatched parens');
-        if (pullToken.type === '(') {
-          let peekToken = stack[stack.length - 1];
-          if (peekToken != null && peekToken.type === 'keyword') {
-            output.push(peekToken);
+        while (stack.length > 0) {
+          let pullToken = stack.pop();
+          if (pullToken == null) throw new Error('Unmatched parens');
+          if (pullToken.type === '(') {
+            let peekToken = stack[stack.length - 1];
+            if (peekToken != null && peekToken.type === 'keyword') {
+              output.push(stack.pop());
+            }
+            break;
+          } else {
+            output.push(pullToken);
           }
-        } else {
-          output.push(pullToken);
         }
         break;
       }
@@ -64,5 +68,5 @@ export default function shuntingYard(tokenizer) {
     if (token.type === '(') throw new Error('Unmatched parens');
     output.push(token);
   }
-  return stack;
+  return output;
 }
