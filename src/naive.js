@@ -1,4 +1,4 @@
-export function parse(tokenizer) {
+export default function parse(tokenizer) {
   let state = {
     buffer: [],
     next: () => {
@@ -19,7 +19,9 @@ export function parse(tokenizer) {
 
 function expect(token, type) {
   let tokenType = (token == null ? 'null' : token.type);
-  if (type !== tokenType) throw new Error('Expected ' + type);
+  if (type !== tokenType) {
+    throw new Error('Expected ' + type + ', but got ' + tokenType);
+  }
   return token;
 }
 
@@ -30,7 +32,9 @@ function suggest(token, type) {
 
 function main(state) {
   // Expression
-  return addExpr(state);
+  let result = addExpr(state);
+  expect(state.next(), 'null');
+  return result;
 }
 
 function addExpr(state) {
@@ -38,9 +42,10 @@ function addExpr(state) {
   let left = mulExpr(state);
   // If + is received, continue assemblying addExpr; Otherwise just stop.
   if (suggest(state.peek(), '+')) {
-    let right = mulExpr(state);
+    let op = state.next();
+    let right = addExpr(state);
     // Assemble these two...
-    return [].concat(left, right, '+');
+    return [].concat(left, right, op);
   } else {
     return left;
   }
@@ -50,14 +55,15 @@ function mulExpr(state) {
   let left = value(state);
   // If * is received, continue assemblying mulExpr; Otherwise just stop.
   if (suggest(state.peek(), '*')) {
-    let right = value(state);
+    let op = state.next();
+    let right = mulExpr(state);
     // Assemble these two...
-    return [].concat(left, right, '*');
+    return [].concat(left, right, op);
   } else {
     return left;
   }
 }
 
 function value(state) {
-  return [expect(state.next(), 'number').value];
+  return [expect(state.next(), 'number')];
 }
