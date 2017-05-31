@@ -18,5 +18,17 @@ describe('naive', () => {
       { type: 'number', value: 5 },
       { type: '+' },
     ]);
+    expect(naive(tokenize('1 + 3 * 2 + max(2 + 2)'))).toEqual([
+      { type: 'number', value: 1 },
+      { type: 'number', value: 3 },
+      { type: 'number', value: 2 },
+      { type: '*' },
+      { type: '+' },
+      { type: 'number', value: 2 },
+      { type: 'number', value: 2 },
+      { type: '+' },
+      { type: 'keyword', value: 'max' },
+      { type: '+' },
+    ]);
   });
 });

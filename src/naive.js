@@ -41,45 +41,74 @@ function main(state) {
 }
 
 function addExpr(state) {
-  // If we already have addExpr in the output head, assemble using *.
-  if (suggest(state.peekOutput(), 'addExpr')) {
-    // If * is received, continue assemblying addExpr; Otherwise just stop.
-    let left = state.output.pop().value;
-    let op = state.next();
-    let right = mulExpr(state);
-    // Assemble these two...
-    state.push([].concat(left, right, op), 'addExpr');
-  } else {
-    // Or push the value to output buffer.
-    state.push(mulExpr(state), 'addExpr');
-  }
-  // Continue addExpr if possible
-  if (suggest(state.peek(), '+')) {
-    return addExpr(state);
-  } else {
-    return state.output.pop().value;
-  }
+  let buffer = null;
+  do {
+    if (buffer != null) {
+      // If + is received, continue assemblying addExpr; Otherwise just stop.
+      let left = buffer;
+      let op = state.next();
+      let right = mulExpr(state);
+      // Assemble these two...
+      buffer = [].concat(left, right, op);
+    } else {
+      // Or push the value to output buffer.
+      buffer = mulExpr(state);
+    }
+  } while (suggest(state.peek(), '+'));
+  return buffer;
 }
 
 function mulExpr(state) {
-  // If we already have mulExpr in the output head, assemble using *.
-  if (suggest(state.peekOutput(), 'mulExpr')) {
-    // If * is received, continue assemblying mulExpr; Otherwise just stop.
-    let left = state.output.pop().value;
-    let op = state.next();
-    let right = value(state);
-    // Assemble these two...
-    state.push([].concat(left, right, op), 'mulExpr');
+  let buffer = null;
+  do {
+    if (buffer != null) {
+      // If * is received, continue assemblying mulExpr; Otherwise just stop.
+      let left = buffer;
+      let op = state.next();
+      let right = funcExpr(state);
+      // Assemble these two...
+      buffer = [].concat(left, right, op);
+    } else {
+      // Or push the value to output buffer.
+      buffer = funcExpr(state);
+    }
+  } while (suggest(state.peek(), '*'));
+  return buffer;
+}
+
+function funcExpr(state) {
+  if (suggest(state.peek(), 'keyword')) {
+    let kwd = state.next();
+    expect(state.next(), '(');
+    let args = funcArgs(state);
+    return args.concat(kwd);
+  } else if (suggest(state.peek(), '(')) {
+    state.next();
+    let output = addExpr(state);
+    expect(state.next(), ')');
+    return output;
   } else {
-    // Or push the value to output buffer.
-    state.push(value(state), 'mulExpr');
+    return value(state);
   }
-  // Continue mulExpr if possible
-  if (suggest(state.peek(), '*')) {
-    return mulExpr(state);
-  } else {
-    return state.output.pop().value;
-  }
+}
+
+function funcArgs(state) {
+  let buffer = null;
+  do {
+    if (buffer != null) {
+      // If , is received, continue assemblying funcArgs; Otherwise just stop.
+      let left = buffer;
+      expect(state.next(), ',');
+      let right = addExpr(state);
+      // Assemble these two...
+      buffer = [].concat(left, right);
+    } else {
+      // Or push the value to output buffer.
+      buffer = addExpr(state);
+    }
+  } while (suggest(state.peek(), ','));
+  expect(state.next(), ')');
+  return buffer;
 }
 
 function value(state) {
