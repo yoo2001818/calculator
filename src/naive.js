@@ -1,5 +1,6 @@
 export default function parse(tokenizer) {
   let state = {
+    output: [],
     buffer: [],
     next: () => {
       if (state.buffer.length > 0) {
@@ -13,6 +14,8 @@ export default function parse(tokenizer) {
       if (state.buffer.length === 0) state.buffer.push(state.next());
       return state.buffer[0];
     },
+    push: (value, type) => state.output.push({ value, type }),
+    peekOutput: () => state.output[state.output.length - 1],
   };
   return main(state);
 }
@@ -38,29 +41,44 @@ function main(state) {
 }
 
 function addExpr(state) {
-  // Get left
-  let left = mulExpr(state);
-  // If + is received, continue assemblying addExpr; Otherwise just stop.
-  if (suggest(state.peek(), '+')) {
+  // If we already have addExpr in the output head, assemble using *.
+  if (suggest(state.peekOutput(), 'addExpr')) {
+    // If * is received, continue assemblying addExpr; Otherwise just stop.
+    let left = state.output.pop().value;
     let op = state.next();
-    let right = addExpr(state);
+    let right = mulExpr(state);
     // Assemble these two...
-    return [].concat(left, right, op);
+    state.push([].concat(left, right, op), 'addExpr');
   } else {
-    return left;
+    // Or push the value to output buffer.
+    state.push(mulExpr(state), 'addExpr');
+  }
+  // Continue addExpr if possible
+  if (suggest(state.peek(), '+')) {
+    return addExpr(state);
+  } else {
+    return state.output.pop().value;
   }
 }
 
 function mulExpr(state) {
-  let left = value(state);
-  // If * is received, continue assemblying mulExpr; Otherwise just stop.
-  if (suggest(state.peek(), '*')) {
+  // If we already have mulExpr in the output head, assemble using *.
+  if (suggest(state.peekOutput(), 'mulExpr')) {
+    // If * is received, continue assemblying mulExpr; Otherwise just stop.
+    let left = state.output.pop().value;
     let op = state.next();
-    let right = mulExpr(state);
+    let right = value(state);
     // Assemble these two...
-    return [].concat(left, right, op);
+    state.push([].concat(left, right, op), 'mulExpr');
   } else {
-    return left;
+    // Or push the value to output buffer.
+    state.push(value(state), 'mulExpr');
+  }
+  // Continue mulExpr if possible
+  if (suggest(state.peek(), '*')) {
+    return mulExpr(state);
+  } else {
+    return state.output.pop().value;
   }
 }
 
